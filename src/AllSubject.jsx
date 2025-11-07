@@ -74,7 +74,7 @@ function AddSubject() {
       return;
     }
 
-    fetch(`http://localhost:8091/subject/delete-subject/${id}`, {
+    fetch(`http://localhost:8091/subject/delete-subject/${id}/`, {
       method: "DELETE",
     })
       .then((res) => {

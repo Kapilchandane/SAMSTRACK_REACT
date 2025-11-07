@@ -18,7 +18,7 @@ function Login() {
     setLoading(true);
     try {
       // Replace with your actual API endpoint
-      const response = await fetch("http://localhost:8091/user/login-user", {
+      const response = await fetch("http://localhost:8091/user/login-user/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginRequest),

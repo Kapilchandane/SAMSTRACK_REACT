@@ -3,8 +3,7 @@ import AdminMenu from "./AdminMenu";
 import FacultyMenu from "./FacultyMenu";
 
 function ViewAttendance() {
-
-  const role= localStorage.getItem('role');
+  const role = localStorage.getItem("role");
 
   const [faculties, setFaculties] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -33,20 +32,39 @@ function ViewAttendance() {
   const fetchAllAttendance = () => {
     fetch("http://localhost:8091/attendance/get-all-attendance-records/")
       .then((res) => res.json())
-      .then((data) => setAttendance(data))
+      .then((data) => {
+        console.log("data.............." + data);
+
+        setAttendance(data);
+      })
       .catch((err) => console.error("Error fetching all attendance:", err));
   };
 
   const fetchFilteredAttendance = () => {
-    if (!selectedFaculty || !selectedSubject || !selectedDate) {
-      alert("Please select Faculty, Subject, and Date!");
-      return;
+    let API_URL = `http://localhost:8091/attendance/get-attendance/${selectedFaculty}/${selectedSubject}/${selectedDate}`;
+
+    if (role === "admin") {
+      // check all fields are filled
+      if (!selectedFaculty || !selectedSubject || !selectedDate) {
+        alert("Please select faculty, subject and date");
+        return;
+      }
+      API_URL = `http://localhost:8091/attendance/get-attendance/${selectedFaculty}/${selectedSubject}/${selectedDate}`;
+    } else {
+      if (!selectedSubject || !selectedDate) {
+        alert("Please select subject and date");
+        return;
+      }
+      const username = localStorage.getItem("username");
+      API_URL = `http://localhost:8091/attendance/get-attendance/${username}/${selectedSubject}/${selectedDate}`;
     }
-    fetch(
-      `http://localhost:8091/attendance/get-attendance/${selectedFaculty}/${selectedSubject}/${selectedDate}`
-    )
+
+    fetch(API_URL)
       .then((res) => res.json())
-      .then((data) => setAttendance(data))
+      .then((data) => {
+        setAttendance(data);
+        console.log("my data " + data);
+      })
       .catch((err) =>
         console.error("Error fetching filtered attendance:", err)
       );
@@ -60,33 +78,34 @@ function ViewAttendance() {
 
   return (
     <>
-      {role==='admin'?<AdminMenu />: <FacultyMenu />}
+      {role === "admin" ? <AdminMenu /> : <FacultyMenu />}
 
       <div className="min-h-screen bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 flex flex-col items-center py-8">
         <div className="bg-white shadow-lg rounded-xl p-6 w-full max-w-6xl">
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
-           
-           
-           <div className="flex flex-col">
-        {role === "admin" && (
-          <>
-            <label className="text-sm font-medium mb-1">Select Faculty</label>
-            <select
-              value={selectedFaculty}
-              onChange={(e) => setSelectedFaculty(e.target.value)}
-              className="border rounded px-3 py-2"
-            >
-              <option value="">Choose Faculty</option>
-              {faculties.map((f, i) => (
-                <option key={i} value={f.username}>
-                  {f.firstName} {f.lastName}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-      </div>
+            <div className="flex flex-col">
+              {role === "admin" && (
+                <>
+                  <label className="text-sm font-medium mb-1">
+                    Select Faculty
+                  </label>
+                  <select
+                    value={selectedFaculty}
+                    onChange={(e) => setSelectedFaculty(e.target.value)}
+                    className="border rounded px-3 py-2"
+                    required
+                  >
+                    <option value="">Choose Faculty</option>
+                    {faculties.map((f, i) => (
+                      <option key={i} value={f.username}>
+                        {f.firstName} {f.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
+            </div>
 
             <div className="flex flex-col">
               <label className="text-sm font-medium mb-1">Select Subject</label>
@@ -94,6 +113,7 @@ function ViewAttendance() {
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 className="border rounded px-3 py-2"
+                required
               >
                 <option value="">Choose Subject</option>
                 {subjects.map((s, i) => (
@@ -111,17 +131,18 @@ function ViewAttendance() {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="border rounded px-3 py-2"
+                required
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              {role==='admin' && (
+              {role === "admin" && (
                 <button
-                onClick={fetchAllAttendance}
-                className="bg-green-600 text-white py-2 rounded hover:bg-green-700"
-              >
-                Show All
-              </button>
+                  onClick={fetchAllAttendance}
+                  className="bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                >
+                  Show All
+                </button>
               )}
               <button
                 onClick={fetchFilteredAttendance}
@@ -158,7 +179,7 @@ function ViewAttendance() {
                     <tr key={a.id} className="border-b hover:bg-gray-100">
                       <td className="px-4 py-2">{index + 1}</td>
                       <td className="px-4 py-2">
-                        {a.user.firstName} {a.user.lastName}
+                        {a.faculty.firstName} {a.faculty.lastName}
                       </td>
                       <td className="px-4 py-2">{a.subject.name}</td>
                       <td className="px-4 py-2">{a.date}</td>
